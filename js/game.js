@@ -6,329 +6,284 @@
 	Authours: Vaughan Hilts [120892740], Brandon Smith, Colin Gidzinski
 
  */
-
 var TO_RADIANS = Math.PI / 180
+var GAME_WIDTH = 800;
+var GAME_HEIGHT = 600;
 
 
-// Create the canvas
+/*
+	Describes a 2D matrix array of tile ID's that allow us to define our backgounr
+*/
+var tilemap = [
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+];
+
+// Create the HTML5 game canvas elements
 var canvas = document.createElement("canvas");
 var ctx = canvas.getContext("2d");
-canvas.width = 800;
-canvas.height = 600;
 document.getElementById("holder").appendChild(canvas);
 
-ctx['imageSmoothingEnabled'] = false;
-ctx['mozImageSmoothingEnabled'] = false;
-ctx['oImageSmoothingEnabled'] = false;
-ctx['webkitImageSmoothingEnabled'] = false;
-ctx['msImageSmoothingEnabled'] = false;
-
-
-
+// Begin playing the game audio
 var bgMusic = new Audio("audio/copycat.mp3"); // buffers automatically when created
 bgMusic.play();
-
 bgMusic.addEventListener('ended', function() {
     this.currentTime = 0;
     this.play();
 }, false);
 
+// The chicken sound effect that plays when a chicken is caught
 var chickenSe = new Audio("audio/chicken.mp3");
-
 
 // Background image
 var bgReady = false;
 var bgImage = new Image();
-bgImage.onload = function () {
-	bgReady = true;
+bgImage.onload = function() {
+    bgReady = true;
 };
 bgImage.src = "images/tilemap.png";
 
 // Hero image
 var heroReady = false;
 var heroImage = new Image();
-heroImage.onload = function () {
-	heroReady = true;
+heroImage.onload = function() {
+    heroReady = true;
 };
 heroImage.src = "images/SaraFullSheet.png";
 
 // Monster image
 var monsterReady = false;
 var monsterImage = new Image();
-monsterImage.onload = function () {
-	monsterReady = true;
+monsterImage.onload = function() {
+    monsterReady = true;
 };
 monsterImage.src = "images/zombie.png";
 
-// Game objects
+// Define our hero game object
 var hero = {
-	speed: 128, // movement in pixels per second
-	dir: 2
+    speed: 128, // movement in pixels per second
+    dir: 2,
+    width: 32,
+    height: 40
 };
 
 hero.x = 64;
 hero.y = 128;
 
-var monster = {};
+// Load our game save files
 var monstersCaught = parseInt(localStorage["monsters"]);
-if(isNaN(monstersCaught)){
-	monstersCaught = 0;
+if (isNaN(monstersCaught)) {
+    monstersCaught = 0;
 }
+
 var chickens = [];
 
-
 // Handle keyboard controls
-var keysDown = {};
 var mouseX = 0;
 var mouseY = 0;
 var mouseDown = false;
 
-addEventListener("keydown", function (e) {
-	keysDown[e.keyCode] = true;
-}, false);
-
-addEventListener("keyup", function (e) {
-	delete keysDown[e.keyCode];
-}, false);
 
 addEventListener("mousedown", function(e) {
-
-	mouseDown = true;
-
+    mouseDown = true;
 }, false);
 
-addEventListener("mousemove", function(e) {
-
-
-	// Set our flags, do stuff in the game loop
-	mouseX = (e.clientX - canvas.offsetLeft) / scale;
-	mouseY = (e.clientY - canvas.offsetTop) / scale;
-
-	if(mouseX > 800 - 96)
-		mouseX = 800 - 96;
-
-	if(mouseX < 32)
-		mouseX = 32;
-
-	if(mouseY < 32)
-		mouseY = 32;
-
-	if(mouseY > 600 - 96)
-		mouseY = 600 - 96;
-
-
-}, false);
 
 addEventListener("mouseup", function(e) {
+    mouseDown = false;
+}, false);
 
-	mouseDown = false;
+
+addEventListener("mousemove", function(e) {
+    // Set our flags, do stuff in the game loop
+    mouseX = (e.clientX - canvas.offsetLeft) / scale;
+    mouseY = (e.clientY - canvas.offsetTop) / scale;
+
+    // The various multiplication factors are to relax the boundaries a bit (sprite padding)
+    var rightBoundary = GAME_WIDTH - hero.width * 2.5;
+    var leftBoundary = hero.width * 0.5;
+    var bottomBoundary = GAME_HEIGHT - (hero.height * 2);
+
+    if (mouseX > rightBoundary)
+        mouseX = rightBoundary;
+
+    if (mouseX < leftBoundary)
+        mouseX = leftBoundary;
+
+    if (mouseY < hero.height / 2)
+        mouseY = hero.height / 2;
+
+    if (mouseY > bottomBoundary)
+        mouseY = bottomBoundary;
 
 }, false);
 
+
+// Begin our resize logic
+
 var resize = function() {
-
-
-	playableHeight = window.innerHeight * 0.98;
+		// We shrink the game window slightly to leave a small border
+    playableHeight = window.innerHeight * 0.98;
     playableWidth = window.innerWidth * 0.98;
-    scaleWidth = playableWidth / 800
-    scaleHeight = playableHeight / 600
-    scale =  Math.min(12, Math.max(0.1, Math.min(scaleWidth, scaleHeight)));
 
-    
-    canvas.width = 800 * scale;
-    canvas.height = 600 * scale;
+    scaleWidth = playableWidth / GAME_WIDTH
+    scaleHeight = playableHeight / GAME_HEIGHT
+    scale = Math.min(Number.MAX_SAFE_INTEGER, Math.max(0.1, Math.min(scaleWidth, scaleHeight)));
 
-
+    canvas.width = GAME_WIDTH * scale;
+    canvas.height = GAME_HEIGHT * scale;
 };
-
 
 
 addEventListener("resize", resize);
 
 // Reset the game when the player catches a monster
-var reset = function () {
+var reset = function() {
 
-	// Generate a chicken
-	var chicken = {};
+    // Generate a chicken
+    var chicken = {};
 
-	// Throw the monster somewhere on the screen randomly
-	chicken.x = 64 + (Math.random() * (800 - 128));
-	chicken.y = 64 + (Math.random() * (600 - 128));
+    var boundaryBuffer = 64;
 
-	angle = Math.random() * 360;
-	chicken.vx = Math.sin(angle * TO_RADIANS)  * 256;
-	chicken.vy = Math.cos(angle * TO_RADIANS)  * 256;
+    // Throw the monster somewhere on the screen randomly
+    chicken.x = boundaryBuffer + (Math.random() * (GAME_WIDTH - boundaryBuffer * 2));
+    chicken.y = boundaryBuffer + (Math.random() * (GAME_HEIGHT - boundaryBuffer * 2));
 
-	chickens.push(chicken);
+    chicken.width = 32;
+    chicken.height = 32;
+    chicken.speed = 256;
+
+    // Generate a random angle between 0 and 360 degrees
+    angle = Math.random() * 360;
+
+    chicken.vx = Math.sin(angle * TO_RADIANS) * chicken.speed;
+    chicken.vy = Math.cos(angle * TO_RADIANS) * chicken.speed;
+
+    chickens.push(chicken);
 
 };
 
 
 
 
-    var scale = 1;
-    resize();
-
-
+var scale = 1;
+resize();
 
 // Update game objects
-var update = function (modifier) {
-	if (38 in keysDown) { // Player holding up
-		hero.y -= hero.speed * modifier;
-	}
-	if (40 in keysDown) { // Player holding down
-		hero.y += hero.speed * modifier;
-	}
-	if (37 in keysDown) { // Player holding left
-		hero.x -= hero.speed * modifier;
-	}
-	if (39 in keysDown) { // Player holding right
-		hero.x += hero.speed * modifier;
-	}
+var update = function(modifier) {
 
-	if(mouseDown) {
-		x = -(hero.x - mouseX);
-		y = -(hero.y - mouseY);
+    if (mouseDown) {
+        hero.x = mouseX;
+        hero.y = mouseY;
+    }
 
-		// normalize
-		if(x > 0)
-			x = 1;
-		else
-			x = -1;
+    chickens.forEach(function(chicken) {
 
-		if(y > 0)
-			y = 1;
-		else
-			y = -1;
+        chicken.x += chicken.vx * modifier;
+        chicken.y += chicken.vy * modifier;
+
+        var invert = false;
+
+        if (chicken.x > GAME_WIDTH - chicken.width * 2) {
+            chicken.x = GAME_WIDTH - chicken.width * 2;
+            chicken.vx *= -1;
+        }
+
+        if (chicken.x < chicken.width) {
+            chicken.x = chicken.width;
+            chicken.vx *= -1;
+        }
 
 
+        if (chicken.y < chicken.height) {
+            chicken.y = chicken.height;
+            chicken.vy *= -1;
+        }
 
 
-		//hero.x = hero.x +  x * modifier * hero.speed;
-		//hero.y = hero.y +  y * modifier * hero.speed;
-		hero.x = mouseX;
-		hero.y = mouseY;
+        if (chicken.y > GAME_HEIGHT - chicken.height * 1.5) {
+            chicken.y = GAME_HEIGHT - chicken.height * 1.5;
+            chicken.vy *= -1;
+        }
 
 
 
-	}
+        // Are they touching?
+        if (
+            hero.x <= (chicken.x + 32) && chicken.x <= (hero.x + hero.width) && hero.y <= (chicken.y + 32) && chicken.y <= (hero.y + hero.height)
+        ) {
+            ++monstersCaught;
+            localStorage["monsters"] = monstersCaught;
+            chickens.splice(chickens.indexOf(chicken), 1);
 
-		chickens.forEach(function(chicken) {
-	
-			chicken.x += chicken.vx * modifier;
-			chicken.y += chicken.vy * modifier;
-
-			var invert = false;
-
-		if(chicken.x > 800 - 64) {
-			chicken.x = 800 - 64;
-		chicken.vx *= -1;
-		}
-
-	if(chicken.x < 32) {
-		chicken.x = 32;
-		chicken.vx *= -1;
-	}
-		
-
-	if(chicken.y < 32) {
-		chicken.y = 32;
-	chicken.vy *= -1;
-	}
-		
-
-	if(chicken.y > 600 - 64) {
-		chicken.y = 600 - 64;
-		chicken.vy *= -1;
-	}
-		
-
-
-								// Are they touching?
-				if (
-					hero.x <= (chicken.x + 64)
-					&& chicken.x <= (hero.x + 64)	
-					&& hero.y <= (chicken.y + 64)
-					&& chicken.y <= (hero.y + 64)
-				) {
-					++monstersCaught;
-					localStorage["monsters"] = monstersCaught;
-					chickens.splice(chickens.indexOf(chicken), 1);
-					//chickenSe.stop();
-					chickenSe.play();
-				}
-
-
-		});
+            // Reset sound effect and play it
+            chickenSe.currentTime = 0;
+            chickenSe.play();
+        }
+    });
 
 
 };
 
-var tilemap = [
-			[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-			[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-			[1, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 1],
-			[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-			[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 1],
-			[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-			[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-			[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-			[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-			[1, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
-			[1, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
-			[1, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3],
-			[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-			[1, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 1],
-			[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-			[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 1],
-			[1, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-			[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-			[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-			];
 
-// Draw everything
-var render = function () {
+/*
+	Our basic render function. We perform all the draw calls we need to here, painting the screen.
+*/
+var render = function() {
 
-	
+    ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    ctx.fillStyle = 'transparent';
 
+    if (bgReady) {
+        // First, we render our tilemap. It's at our feet
+        renderTilemap();
+    }
 
+    // Prepare for scaling
+    ctx.save()
+    ctx.scale(scale, scale);
 
-	ctx.clearRect(0, 0, 800, 600);
+    if (heroReady) {
+        ctx.drawImage(heroImage, 0, hero.dir * 64, 64, 64, Math.round(hero.x), Math.round(hero.y), 64, 64);
+    }
 
-	ctx.fillStyle = 'transparent';
+    if (monsterReady) {
+        chickens.forEach(function(chicken) {
+            ctx.drawImage(monsterImage, 0, 2 * chicken.width, chicken.width, chicken.height, Math.round(chicken.x),
+            	Math.round(chicken.y), chicken.width, chicken.height);
+        });
+    }
 
-	if (bgReady) {
-		//ctx.drawImage(bgImage, 0, 0);
-		
-		// First, we render our tilemap. It's at our feet
-		renderTilemap();
-	}
+    // Draw our score
+    drawStroked("Chickens caught: " + monstersCaught, 40, 50);
 
-  	ctx.save()
-	ctx.scale(scale, scale);
-
-	if (heroReady) {
-		ctx.drawImage(heroImage, 0, hero.dir * 64, 64, 64, Math.round(hero.x), Math.round(hero.y), 64, 64);
-	}
-
-	if (monsterReady) {
-
-		chickens.forEach(function(chicken) {
-			ctx.drawImage(monsterImage, 0, 2 * 32, 32, 32, Math.round(chicken.x), Math.round(chicken.y), 32, 32);
-		});
-
-
-	}
-
-	// Score
-	drawStroked("Chickens caught: " + monstersCaught, 40, 50);
-
-	ctx.restore();
-
-	
-
+    ctx.restore();
 };
 
+/*
+		Draws a stroked text on the screen
+
+		@param	{string}	text 	The text to be drawn on the screen
+		@param 	{number}	x 		The X cordinate in world cordinates to draw at
+		@param	{number}	y 		The Y cordinate in world cordinates to draw at
+*/
 function drawStroked(text, x, y) {
     ctx.font = "24px VT323"
     ctx.strokeStyle = 'black';
@@ -341,30 +296,31 @@ function drawStroked(text, x, y) {
 /*
 	A basic method that will iterate our hard-coded array and generate a nice tile map for us with minimal effort
  */
-var renderTilemap = function () {
-	for(var x = 0; x < tilemap.length; x++)
-		for(var y = 0; y < tilemap[0].length; y++) {
-	         ctx.drawImage(bgImage, 0 * 32, 0, 32, 32, Math.ceil(y*32*scale), Math.ceil(x*32*scale), Math.ceil(32*scale), Math.ceil(32*scale));	// always draw the base ground first
-	         ctx.drawImage(bgImage, tilemap[x][y] * 32, 0, 32, 32, Math.ceil(y*32*scale), Math.ceil(x*32*scale), Math.ceil(32*scale), Math.ceil(32*scale));
-	     }
+var renderTilemap = function() {
+    for (var x = 0; x < tilemap.length; x++)
+        for (var y = 0; y < tilemap[0].length; y++) {
+            ctx.drawImage(bgImage, 0 * 32, 0, 32, 32, Math.ceil(y * 32 * scale), Math.ceil(x * 32 * scale), Math.ceil(32 * scale), Math.ceil(32 * scale)); // always draw the base ground first
+            ctx.drawImage(bgImage, tilemap[x][y] * 32, 0, 32, 32, Math.ceil(y * 32 * scale), Math.ceil(x * 32 * scale), Math.ceil(32 * scale), Math.ceil(32 * scale));
+        }
 }
 
-// The main game loop
-var main = function () {
-	var now = Date.now();
-	var delta = now - then;
+/*
+	The main game loop which is called
+*/
+var main = function() {
+    var now = Date.now();
+    var delta = now - then;
 
-	update(delta / 1000);
-	render();
+    update(delta / 1000);
+    render();
 
-	then = now;
+    then = now;
 };
 
-// Let's play this game!
 reset();
 
 setInterval(function() {
-	reset();
+    reset();
 }, 3000)
 
 var then = Date.now();
