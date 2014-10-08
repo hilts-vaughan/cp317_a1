@@ -71,7 +71,9 @@ hero.y = 128;
 
 var monster = {};
 var monstersCaught = parseInt(localStorage["monsters"]);
-
+if(isNaN(monstersCaught)){
+	monstersCaught = 0;
+}
 var chickens = [];
 
 
