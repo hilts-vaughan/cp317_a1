@@ -14,6 +14,7 @@ var FRAME_SIZE = 64;
 var CHICKEN_FRAME_SIZE = 32;
 var CHICKEN_FRAMES = 4;
 var CHICKEN_FRAME_TIME = 0.15;
+var CHICKEN_SPAWN_RATE = 3000;
 
 /*
 	Describes a 2D matrix array of tile ID's that allow us to define our backgounr
@@ -30,10 +31,10 @@ var tilemap = [
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 3],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
@@ -85,7 +86,7 @@ var monsterImage = new Image();
 monsterImage.onload = function() {
     monsterReady = true;
 };
-monsterImage.src = "images/zombie.png";
+monsterImage.src = "images/chicken.png";
 
 // Define our hero game object
 var hero = {
@@ -230,7 +231,7 @@ var update = function(modifier) {
         c++;
     });
 
-    // Do a y based sort
+    // Do a y based sort to make sure the chickens order properly
     chickens.sort(function(a, b) {
         if(a.y < b.y)
             return 1;
@@ -495,11 +496,13 @@ addEventListener("resize", resize);
 var scale = 1;
 resize();
 
+// Spawn our initial chicken
 spawn();
 
+//
 setInterval(function() {
     spawn();
-}, 3000)
+}, CHICKEN_SPAWN_RATE)
 
 var then = Date.now();
-setInterval(main, 1); // Execute as fast as possible
+setInterval(main, 1);
