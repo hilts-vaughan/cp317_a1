@@ -13,7 +13,7 @@ var TILE_SIZE = 32;
 var FRAME_SIZE = 64;
 var CHICKEN_FRAME_SIZE = 32;
 var CHICKEN_FRAMES = 4;
-var CHICKEN_FRAME_TIME = 0.1;
+var CHICKEN_FRAME_TIME = 0.15;
 
 /*
 	Describes a 2D matrix array of tile ID's that allow us to define our backgounr
