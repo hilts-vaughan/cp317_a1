@@ -9,7 +9,11 @@
 var TO_RADIANS = Math.PI / 180
 var GAME_WIDTH = 800;
 var GAME_HEIGHT = 600;
-
+var TILE_SIZE = 32;
+var FRAME_SIZE = 64;
+var CHICKEN_FRAME_SIZE = 32;
+var CHICKEN_FRAMES = 4;
+var CHICKEN_FRAME_TIME = 0.1;
 
 /*
 	Describes a 2D matrix array of tile ID's that allow us to define our backgounr
@@ -86,6 +90,16 @@ var hero = {
 
 hero.x = 64;
 hero.y = 128;
+
+/*
+    A quick object enumeration with direction codes
+*/
+var Direction = {
+    up: 0,
+    left: 1,
+    down: 2,
+    right: 3
+};
 
 // Load our game save files
 var monstersCaught = parseInt(localStorage["monsters"]);
@@ -169,6 +183,8 @@ var reset = function() {
     chicken.width = 32;
     chicken.height = 32;
     chicken.speed = 256;
+    chicken.frame = 0;
+    chicken.frameTime = 0;
 
     // Generate a random angle between 0 and 360 degrees
     angle = Math.random() * 360;
@@ -199,6 +215,12 @@ var update = function(modifier) {
         chicken.x += chicken.vx * modifier;
         chicken.y += chicken.vy * modifier;
 
+        chicken.frameTime += modifier;
+
+        if(chicken.frameTime > CHICKEN_FRAME_TIME) {
+            chicken.frame = (chicken.frame + 1) % CHICKEN_FRAMES;
+            chicken.frameTime = 0;
+        }
         var invert = false;
 
         if (chicken.x > GAME_WIDTH - chicken.width * 2) {
@@ -223,14 +245,26 @@ var update = function(modifier) {
             chicken.vy *= -1;
         }
 
+        // Update direction of the chicken
+        if(Math.abs(chicken.vy) > Math.abs(chicken.vx)) {
+            if(chicken.vy > 0)
+                chicken.dir = Direction.down;
+            else
+                chicken.dir = Direction.up;
+        }
+        else {
+            if(chicken.vx > 0)
+                chicken.dir = Direction.right;
+            else
+                chicken.dir = Direction.left;
+        }
 
 
         // Are they touching?
         if (
-            hero.x <= (chicken.x + 32) && chicken.x <= (hero.x + hero.width) && hero.y <= (chicken.y + 32) && chicken.y <= (hero.y + hero.height)
+            hero.x <= (chicken.x + chicken.width) && chicken.x <= (hero.x + hero.width) && hero.y <= (chicken.y + chicken.height) && chicken.y <= (hero.y + hero.height)
         ) {
-            ++monstersCaught;
-            localStorage["monsters"] = monstersCaught;
+            localStorage["monsters"] = ++monstersCaught;
             chickens.splice(chickens.indexOf(chicken), 1);
 
             // Reset sound effect and play it
@@ -261,12 +295,12 @@ var render = function() {
     ctx.scale(scale, scale);
 
     if (heroReady) {
-        ctx.drawImage(heroImage, 0, hero.dir * 64, 64, 64, Math.round(hero.x), Math.round(hero.y), 64, 64);
+        ctx.drawImage(heroImage, 0, FRAME_SIZE * 2, FRAME_SIZE, FRAME_SIZE, Math.round(hero.x), Math.round(hero.y), FRAME_SIZE, FRAME_SIZE);
     }
 
     if (monsterReady) {
         chickens.forEach(function(chicken) {
-            ctx.drawImage(monsterImage, 0, 2 * chicken.width, chicken.width, chicken.height, Math.round(chicken.x),
+            ctx.drawImage(monsterImage, chicken.frame * chicken.width, chicken.dir * chicken.height, chicken.width, chicken.height, Math.round(chicken.x),
             	Math.round(chicken.y), chicken.width, chicken.height);
         });
     }
@@ -299,8 +333,10 @@ function drawStroked(text, x, y) {
 var renderTilemap = function() {
     for (var x = 0; x < tilemap.length; x++)
         for (var y = 0; y < tilemap[0].length; y++) {
-            ctx.drawImage(bgImage, 0 * 32, 0, 32, 32, Math.ceil(y * 32 * scale), Math.ceil(x * 32 * scale), Math.ceil(32 * scale), Math.ceil(32 * scale)); // always draw the base ground first
-            ctx.drawImage(bgImage, tilemap[x][y] * 32, 0, 32, 32, Math.ceil(y * 32 * scale), Math.ceil(x * 32 * scale), Math.ceil(32 * scale), Math.ceil(32 * scale));
+            ctx.drawImage(bgImage, 0 * TILE_SIZE, 0, TILE_SIZE, TILE_SIZE, Math.ceil(y * TILE_SIZE * scale),
+            	Math.ceil(x * TILE_SIZE * scale), Math.ceil(TILE_SIZE * scale), Math.ceil(TILE_SIZE * scale));
+            ctx.drawImage(bgImage, tilemap[x][y] * TILE_SIZE, 0, TILE_SIZE, TILE_SIZE, Math.ceil(y * TILE_SIZE * scale),
+            	Math.ceil(x * TILE_SIZE * scale), Math.ceil(TILE_SIZE * scale), Math.ceil(TILE_SIZE * scale));
         }
 }
 
@@ -308,9 +344,12 @@ var renderTilemap = function() {
 	The main game loop which is called
 */
 var main = function() {
+
+		// compute delta
     var now = Date.now();
     var delta = now - then;
 
+    // 1000ms in a second
     update(delta / 1000);
     render();
 
