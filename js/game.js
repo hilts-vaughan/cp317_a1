@@ -110,19 +110,22 @@ var Direction = {
 
 // Load our game save files
 var monstersCaught = parseInt(localStorage["monsters"]);
+
+// Check for save files that aren't initialized yet
 if (isNaN(monstersCaught)) {
     monstersCaught = 0;
 }
 
+// Two simple object lists to keep track of things we need
 var chickens = [];
 var bullets = [];
 
-// Handle keyboard controls
+// Some mouse data
 var mouseX = 0;
 var mouseY = 0;
 var mouseDown = false;
 
-
+// Disable right clicking
 document.oncontextmenu = document.body.oncontextmenu = function() {return false;}
 
 
@@ -175,26 +178,9 @@ addEventListener("mousemove", function(e) {
 }, false);
 
 
-// Begin our resize logic
 
-var resize = function() {
-		// We shrink the game window slightly to leave a small border
-    playableHeight = window.innerHeight * 0.98;
-    playableWidth = window.innerWidth * 0.98;
-
-    scaleWidth = playableWidth / GAME_WIDTH
-    scaleHeight = playableHeight / GAME_HEIGHT
-    scale = Math.min(Number.MAX_SAFE_INTEGER, Math.max(0.1, Math.min(scaleWidth, scaleHeight)));
-
-    canvas.width = GAME_WIDTH * scale;
-    canvas.height = GAME_HEIGHT * scale;
-};
-
-
-addEventListener("resize", resize);
-
-// Reset the game when the player catches a monster
-var reset = function() {
+// spawn the game when the player catches a monster
+var spawn = function() {
 
     // Generate a chicken
     var chicken = {};
@@ -220,12 +206,6 @@ var reset = function() {
     chickens.push(chicken);
 
 };
-
-
-
-
-var scale = 1;
-resize();
 
 // Update game objects
 var update = function(modifier) {
@@ -332,7 +312,7 @@ var performScore = function() {
 
     localStorage["monsters"] = ++monstersCaught;
 
-    // Reset sound effect and play it
+    // spawn sound effect and play it
     chickenSe.currentTime = 0;
     chickenSe.play();
 
@@ -436,6 +416,7 @@ var fireBullet = function() {
     var centerX = hero.x + (hero.width/2);
     var centerY = hero.y + (hero.height/2);
 
+    // Compute our angle and re-adjust
     var angle = Math.atan2(centerX - mouseX, centerY - mouseY) / TO_RADIANS;
     if(angle < 0)
         angle += 360;
@@ -444,9 +425,9 @@ var fireBullet = function() {
 
     bullet.x = centerX + hero.width/2;
     bullet.y = centerY + hero.height/2;
+
     bullet.width = starImage.width;
     bullet.height = starImage.height;
-
 
 
     // A special type of intersection with different values
@@ -481,10 +462,32 @@ var main = function() {
     then = now;
 };
 
-reset();
+
+// Begin our resize logic
+
+var resize = function() {
+        // We shrink the game window slightly to leave a small border
+    playableHeight = window.innerHeight * 0.98;
+    playableWidth = window.innerWidth * 0.98;
+
+    scaleWidth = playableWidth / GAME_WIDTH
+    scaleHeight = playableHeight / GAME_HEIGHT
+    scale = Math.min(Number.MAX_SAFE_INTEGER, Math.max(0.1, Math.min(scaleWidth, scaleHeight)));
+
+    canvas.width = GAME_WIDTH * scale;
+    canvas.height = GAME_HEIGHT * scale;
+};
+
+
+addEventListener("resize", resize);
+
+var scale = 1;
+resize();
+
+spawn();
 
 setInterval(function() {
-    reset();
+    spawn();
 }, 3000)
 
 var then = Date.now();
