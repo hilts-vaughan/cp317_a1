@@ -21,7 +21,7 @@ Modifications:
 
 Credits:
 
-Vaughan Hilts (120892740)
-Brandon Smith (120201510)
+* Vaughan Hilts (120892740)
+* Brandon Smith (120201510)
 
 A basic derivative game of the "simple canvas game" https://github.com/lostdecade/simple_canvas_game
