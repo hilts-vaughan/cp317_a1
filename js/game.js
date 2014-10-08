@@ -304,9 +304,7 @@ var update = function(modifier) {
 
 
         // Award points to the player if the chicken and player are touching
-        if (
-            hero.x <= (chicken.x + chicken.width) && chicken.x <= (hero.x + hero.width) && hero.y <= (chicken.y + chicken.height) && chicken.y <= (hero.y + hero.height)
-        ) {
+        if (intersects(hero, chicken)) {
             chickens.splice(chickens.indexOf(chicken), 1);
             performScore();
         }
@@ -314,7 +312,7 @@ var update = function(modifier) {
         var c = 0;
         bullets.forEach(function(bullet) {
 
-            if(bullet.x <= (chicken.x + chicken.width) && chicken.x <= (bullet.x + bullet.width) && bullet.y <= (chicken.y + chicken.height) && chicken.y <= (bullet.y + bullet.height)) {
+            if(intersects(bullet, chicken)) {
                 chickens.splice(chickens.indexOf(chicken), 1);
                 bullets.splice(c, 1);
                 performScore();
@@ -405,6 +403,7 @@ function drawStroked(text, x, y) {
     ctx.fillText(text, x, y);
 }
 
+
 /*
 	A basic method that will iterate our hard-coded array and generate a nice tile map for us with minimal effort
  */
@@ -417,6 +416,17 @@ var renderTilemap = function() {
             	Math.ceil(x * TILE_SIZE * scale), Math.ceil(TILE_SIZE * scale), Math.ceil(TILE_SIZE * scale));
         }
 }
+
+
+var intersects = function (a, b) {
+
+     return a.x < b.x + b.width &&
+     a.x + a.width > b.x &&
+     a.y < b.y + b.height &&
+     a.y + a.height > b.y;
+
+}
+
 
 var fireBullet = function() {
 
@@ -439,10 +449,11 @@ var fireBullet = function() {
 
 
 
-    if(hero.x <= (mouseX + bullet.width) && mouseX <= (hero.x + FRAME_SIZE) && hero.y <= (mouseY + bullet.height) && mouseY <= (hero.y + FRAME_SIZE)) {
+    // A special type of intersection with different values
+    if(hero.x <= (mouseX + bullet.width) && mouseX <= (hero.x + FRAME_SIZE) && hero.y <= (mouseY + bullet.height)
+        && mouseY <= (hero.y + FRAME_SIZE)) {
         return;
     }
-
 
     bullet.speed = 512;
     bullet.angularSpeed = 256;
