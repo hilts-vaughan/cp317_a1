@@ -230,6 +230,17 @@ var update = function(modifier) {
         c++;
     });
 
+    // Do a y based sort
+    chickens.sort(function(a, b) {
+        if(a.y < b.y)
+            return 1;
+
+        else if(a.y < b.y)
+            return -1;
+
+        return 0;
+    });
+
     chickens.forEach(function(chicken) {
 
         // Update the position of the chicken
