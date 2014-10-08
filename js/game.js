@@ -70,7 +70,7 @@ hero.x = 64;
 hero.y = 128;
 
 var monster = {};
-var monstersCaught = 0;
+var monstersCaught = parseInt(localStorage["monsters"]);
 
 var chickens = [];
 
@@ -250,6 +250,7 @@ var update = function (modifier) {
 					&& chicken.y <= (hero.y + 64)
 				) {
 					++monstersCaught;
+					localStorage["monsters"] = monstersCaught;
 					chickens.splice(chickens.indexOf(chicken), 1);
 					//chickenSe.stop();
 					chickenSe.play();
