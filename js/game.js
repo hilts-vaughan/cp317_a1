@@ -72,6 +72,13 @@ heroImage.onload = function() {
 };
 heroImage.src = "images/SaraFullSheet.png";
 
+var starReady = false;
+var starImage = new Image();
+starImage.onload = function() {
+    starReady = true;
+};
+starImage.src = "images/star.png";
+
 // Monster image
 var monsterReady = false;
 var monsterImage = new Image();
@@ -108,6 +115,7 @@ if (isNaN(monstersCaught)) {
 }
 
 var chickens = [];
+var bullets = [];
 
 // Handle keyboard controls
 var mouseX = 0;
@@ -115,17 +123,34 @@ var mouseY = 0;
 var mouseDown = false;
 
 
+document.oncontextmenu = document.body.oncontextmenu = function() {return false;}
+
+
 addEventListener("mousedown", function(e) {
-    mouseDown = true;
+
+   // Set our flags, do stuff in the game loop
+    mouseX = (e.clientX - canvas.offsetLeft) / scale;
+    mouseY = (e.clientY - canvas.offsetTop) / scale;
+
+    if(e.button == 0) {
+        mouseDown = true;
+    }
+    else {
+        fireBullet();
+    }
+
 }, false);
 
 
 addEventListener("mouseup", function(e) {
-    mouseDown = false;
+    if(e.button == 0) {
+        mouseDown = false;
+    }
 }, false);
 
 
 addEventListener("mousemove", function(e) {
+
     // Set our flags, do stuff in the game loop
     mouseX = (e.clientX - canvas.offsetLeft) / scale;
     mouseY = (e.clientY - canvas.offsetTop) / scale;
@@ -210,19 +235,36 @@ var update = function(modifier) {
         hero.y = mouseY;
     }
 
+    var c = 0;
+    bullets.forEach(function(bullet) {
+
+        bullet.x += bullet.vx * modifier;
+        bullet.y += bullet.vy * modifier;
+
+        bullet.rotation += (bullet.angularSpeed * modifier);
+        bullet.rotation = bullet.rotation % 360;
+
+        if(bullet.x < 0 || bullet.x > GAME_WIDTH || bullet.y < 0 || bullet.y > GAME_HEIGHT)
+            bullets.splice(c, 1);
+
+        c++;
+    });
+
     chickens.forEach(function(chicken) {
 
+        // Update the position of the chicken
         chicken.x += chicken.vx * modifier;
         chicken.y += chicken.vy * modifier;
 
+        // Update the chicken animations if required
         chicken.frameTime += modifier;
-
         if(chicken.frameTime > CHICKEN_FRAME_TIME) {
             chicken.frame = (chicken.frame + 1) % CHICKEN_FRAMES;
             chicken.frameTime = 0;
         }
-        var invert = false;
 
+
+        // Prevent the chickens from going off screen
         if (chicken.x > GAME_WIDTH - chicken.width * 2) {
             chicken.x = GAME_WIDTH - chicken.width * 2;
             chicken.vx *= -1;
@@ -245,7 +287,8 @@ var update = function(modifier) {
             chicken.vy *= -1;
         }
 
-        // Update direction of the chicken
+
+        // Update direction of the chicken given the absolute magnitube of the velocity
         if(Math.abs(chicken.vy) > Math.abs(chicken.vx)) {
             if(chicken.vy > 0)
                 chicken.dir = Direction.down;
@@ -260,22 +303,42 @@ var update = function(modifier) {
         }
 
 
-        // Are they touching?
+        // Award points to the player if the chicken and player are touching
         if (
             hero.x <= (chicken.x + chicken.width) && chicken.x <= (hero.x + hero.width) && hero.y <= (chicken.y + chicken.height) && chicken.y <= (hero.y + hero.height)
         ) {
-            localStorage["monsters"] = ++monstersCaught;
             chickens.splice(chickens.indexOf(chicken), 1);
-
-            // Reset sound effect and play it
-            chickenSe.currentTime = 0;
-            chickenSe.play();
+            performScore();
         }
+
+        var c = 0;
+        bullets.forEach(function(bullet) {
+
+            if(bullet.x <= (chicken.x + chicken.width) && chicken.x <= (bullet.x + bullet.width) && bullet.y <= (chicken.y + chicken.height) && chicken.y <= (bullet.y + bullet.height)) {
+                chickens.splice(chickens.indexOf(chicken), 1);
+                bullets.splice(c, 1);
+                performScore();
+            }
+
+            c++;
+        });
+
+
     });
 
 
 };
 
+
+var performScore = function() {
+
+    localStorage["monsters"] = ++monstersCaught;
+
+    // Reset sound effect and play it
+    chickenSe.currentTime = 0;
+    chickenSe.play();
+
+}
 
 /*
 	Our basic render function. We perform all the draw calls we need to here, painting the screen.
@@ -303,6 +366,21 @@ var render = function() {
             ctx.drawImage(monsterImage, chicken.frame * chicken.width, chicken.dir * chicken.height, chicken.width, chicken.height, Math.round(chicken.x),
             	Math.round(chicken.y), chicken.width, chicken.height);
         });
+    }
+
+    if(starReady) {
+        bullets.forEach(function(bullet) {
+
+            ctx.translate(bullet.x, bullet.y);
+            ctx.rotate(bullet.rotation * TO_RADIANS);
+
+            ctx.drawImage(starImage, -starImage.width / 2, -starImage.height/2, starImage.width, starImage.height);
+
+            ctx.rotate(-(bullet.rotation * TO_RADIANS));
+            ctx.translate(-bullet.x, -bullet.y);
+
+
+        })
     }
 
     // Draw our score
@@ -340,12 +418,48 @@ var renderTilemap = function() {
         }
 }
 
+var fireBullet = function() {
+
+
+    // We need to check if the point is inside the hero
+
+    var centerX = hero.x + (hero.width/2);
+    var centerY = hero.y + (hero.height/2);
+
+    var angle = Math.atan2(centerX - mouseX, centerY - mouseY) / TO_RADIANS;
+    if(angle < 0)
+        angle += 360;
+
+    bullet = {};
+
+    bullet.x = centerX + hero.width/2;
+    bullet.y = centerY + hero.height/2;
+    bullet.width = starImage.width;
+    bullet.height = starImage.height;
+
+
+
+    if(hero.x <= (mouseX + bullet.width) && mouseX <= (hero.x + FRAME_SIZE) && hero.y <= (mouseY + bullet.height) && mouseY <= (hero.y + FRAME_SIZE)) {
+        return;
+    }
+
+
+    bullet.speed = 512;
+    bullet.angularSpeed = 256;
+    bullet.rotation = 0;
+
+    bullet.vx = -1 *  Math.sin(angle * TO_RADIANS) * bullet.speed;
+    bullet.vy = -1 * Math.cos(angle * TO_RADIANS) * bullet.speed;
+
+    bullets.push(bullet);
+}
+
 /*
 	The main game loop which is called
 */
 var main = function() {
 
-		// compute delta
+	// compute delta
     var now = Date.now();
     var delta = now - then;
 
