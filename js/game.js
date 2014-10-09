@@ -3,7 +3,7 @@
 
 	Simple Goblin Knight game
 
-	Authours: Vaughan Hilts [120892740], Brandon Smith, Colin Gidzinski
+	Authours: Vaughan Hilts [120892740], Brandon Smith[120201510], Colin Gidzinski
 
  */
 var TO_RADIANS = Math.PI / 180
@@ -15,7 +15,25 @@ var CHICKEN_FRAME_SIZE = 32;
 var CHICKEN_FRAMES = 4;
 var CHICKEN_FRAME_TIME = 0.15;
 var CHICKEN_SPAWN_RATE = 3000;
-var UPDATE_TIMER =1000;
+var MILLISECOND_PER_SECOND =1000;
+var BOARDER_WIDTH=0.98;
+var DEGREES_IN_CIRCLE = 360;
+var BULLET_SPEED =512;
+var BULLET_ANGULAR_SPEED = 256;
+var HERO_SPEED =128;
+var HERO_WIDTH = 32;
+var HERO_HEIGHT = 40;
+var HERO_INITIAL_X = 64;
+var HERO_INITIAL_Y = 128;
+var CHICKEN_WIDTH = 32;
+var CHICKEN_HEIGHT = 32;
+var CHICKEN_SPEED = 256;
+var SPAWN_BUFFER = 64;
+var SCORE_X = 40;
+var SCORE_Y = 50;
+var HERO_RIGHT_PADDING=2.5;
+var HERO_LOWER_PADDING=2.0;
+var HERO_LEFT_PADDING=.5;
 /*
 	Describes a 2D matrix array of tile ID's that allow us to define our backgounr
 */
@@ -90,14 +108,14 @@ monsterImage.src = "images/chicken.png";
 
 // Define our hero game object
 var hero = {
-    speed: 128, // movement in pixels per second
+    speed: HERO_SPEED, // movement in pixels per second
     dir: 2,
-    width: 32,
-    height: 40
+    width: HERO_WIDTH,
+    height: HERO_HEIGHT
 };
 
-hero.x = 64;
-hero.y = 128;
+hero.x = HERO_INITIAL_X;
+hero.y = HERO_INITIAL_Y;
 
 /*
     A quick object enumeration with direction codes
@@ -160,9 +178,9 @@ addEventListener("mousemove", function(e) {
     mouseY = (e.clientY - canvas.offsetTop) / scale;
 
     // The various multiplication factors are to relax the boundaries a bit (sprite padding)
-    var rightBoundary = GAME_WIDTH - hero.width * 2.5;
-    var leftBoundary = hero.width * 0.5;
-    var bottomBoundary = GAME_HEIGHT - (hero.height * 2);
+    var rightBoundary = GAME_WIDTH - hero.width * HERO_RIGHT_PADDING;
+    var leftBoundary = hero.width * HERO_LEFT_PADDING;
+    var bottomBoundary = GAME_HEIGHT - (hero.height * HERO_BOTTOM_PADDING);
 
     if (mouseX > rightBoundary)
         mouseX = rightBoundary;
@@ -186,20 +204,21 @@ var spawn = function() {
     // Generate a chicken
     var chicken = {};
 
-    var boundaryBuffer = 64;
+    var boundaryBuffer = SPAWN_BUFFER;
 
     // Throw the monster somewhere on the screen randomly
     chicken.x = boundaryBuffer + (Math.random() * (GAME_WIDTH - boundaryBuffer * 2));
     chicken.y = boundaryBuffer + (Math.random() * (GAME_HEIGHT - boundaryBuffer * 2));
 
-    chicken.width = 32;
-    chicken.height = 32;
-    chicken.speed = 256;
+
+    chicken.width = CHICKEN_WIDTH;
+    chicken.height = CHICKEN_HEIGHT;
+    chicken.speed = CHICKEN_SPEED;
     chicken.frame = 0;
     chicken.frameTime = 0;
 
     // Generate a random angle between 0 and 360 degrees
-    angle = Math.random() * 360;
+    angle = Math.random() * DEGREES_IN_CIRCLE;
 
     chicken.vx = Math.sin(angle * TO_RADIANS) * chicken.speed;
     chicken.vy = Math.cos(angle * TO_RADIANS) * chicken.speed;
@@ -223,7 +242,7 @@ var update = function(modifier) {
         bullet.y += bullet.vy * modifier;
 
         bullet.rotation += (bullet.angularSpeed * modifier);
-        bullet.rotation = bullet.rotation % 360;
+        bullet.rotation = bullet.rotation % DEGREES_IN_CIRCLE;
 
         if(bullet.x < 0 || bullet.x > GAME_WIDTH || bullet.y < 0 || bullet.y > GAME_HEIGHT)
             bullets.splice(c, 1);
@@ -374,7 +393,7 @@ var render = function() {
     }
 
     // Draw our score
-    drawStroked("Chickens caught: " + monstersCaught, 40, 50);
+    drawStroked("Chickens caught: " + monstersCaught, SCORE_X, SCORE_Y);
 
     ctx.restore();
 };
@@ -431,7 +450,7 @@ var fireBullet = function() {
     // Compute our angle and re-adjust
     var angle = Math.atan2(centerX - mouseX, centerY - mouseY) / TO_RADIANS;
     if(angle < 0)
-        angle += 360;
+        angle += DEGREES_IN_CIRCLE;
 
     bullet = {};
 
@@ -448,8 +467,8 @@ var fireBullet = function() {
         return;
     }
 
-    bullet.speed = 512;
-    bullet.angularSpeed = 256;
+    bullet.speed = BULLET_SPEED;
+    bullet.angularSpeed = BULLET_ANGULAR_SPEED;
     bullet.rotation = 0;
 
     bullet.vx = -1 *  Math.sin(angle * TO_RADIANS) * bullet.speed;
@@ -468,7 +487,7 @@ var main = function() {
     var delta = now - then;
 
     // 1000ms in a second
-    update(delta / UPDATE_TIMER);
+    update(delta / MILLISECOND_PER_SECOND);
     render();
 
     then = now;
@@ -479,8 +498,8 @@ var main = function() {
 
 var resize = function() {
         // We shrink the game window slightly to leave a small border
-    playableHeight = window.innerHeight * 0.98;
-    playableWidth = window.innerWidth * 0.98;
+    playableHeight = window.innerHeight * BOARDER_WIDTH;
+    playableWidth = window.innerWidth * BOARDER_WIDTH;
 
     scaleWidth = playableWidth / GAME_WIDTH
     scaleHeight = playableHeight / GAME_HEIGHT
