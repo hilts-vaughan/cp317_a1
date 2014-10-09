@@ -4,6 +4,7 @@
 	Simple Goblin Knight game
 
 	Authours: Vaughan Hilts [120892740], Brandon Smith[120201510], Colin Gidzinski
+    For a list of additional features see the readme.
 
  */
 var TO_RADIANS = Math.PI / 180
