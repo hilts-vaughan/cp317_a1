@@ -22,7 +22,7 @@ var BULLET_SPEED =512;
 var BULLET_ANGULAR_SPEED = 256;
 var HERO_SPEED =128;
 var HERO_WIDTH = 32;
-var HERO_HEIGHT = 40;
+var HERO_HEIGHT = 64;
 var HERO_INITIAL_X = 64;
 var HERO_INITIAL_Y = 128;
 var CHICKEN_WIDTH = 32;
@@ -32,7 +32,7 @@ var SPAWN_BUFFER = 64;
 var SCORE_X = 40;
 var SCORE_Y = 50;
 var HERO_RIGHT_PADDING=2.5;
-var HERO_LOWER_PADDING=2.0;
+var HERO_BOTTOM_PADDING=1.25;
 var HERO_LEFT_PADDING=.5;
 /*
 	Describes a 2D matrix array of tile ID's that allow us to define our backgounr
