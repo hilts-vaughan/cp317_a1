@@ -15,7 +15,7 @@ var CHICKEN_FRAME_SIZE = 32;
 var CHICKEN_FRAMES = 4;
 var CHICKEN_FRAME_TIME = 0.15;
 var CHICKEN_SPAWN_RATE = 3000;
-
+var UPDATE_TIMER =1000;
 /*
 	Describes a 2D matrix array of tile ID's that allow us to define our backgounr
 */
@@ -180,7 +180,7 @@ addEventListener("mousemove", function(e) {
 
 
 
-// spawn the game when the player catches a monster
+// Creates a moving chicken and places it on the screen
 var spawn = function() {
 
     // Generate a chicken
@@ -280,7 +280,7 @@ var update = function(modifier) {
         }
 
 
-        // Update direction of the chicken given the absolute magnitube of the velocity
+        // Update direction of the chicken given the absolute magnitude of the velocity
         if(Math.abs(chicken.vy) > Math.abs(chicken.vx)) {
             if(chicken.vy > 0)
                 chicken.dir = Direction.down;
@@ -295,7 +295,7 @@ var update = function(modifier) {
         }
 
 
-        // Award points to the player if the chicken and player are touching
+        // Award a point to the player if the chicken and player are touching
         if (intersects(hero, chicken)) {
             chickens.splice(chickens.indexOf(chicken), 1);
             performScore();
@@ -346,18 +346,18 @@ var render = function() {
     // Prepare for scaling
     ctx.save()
     ctx.scale(scale, scale);
-
+    // Draw our hero
     if (heroReady) {
         ctx.drawImage(heroImage, 0, FRAME_SIZE * 2, FRAME_SIZE, FRAME_SIZE, Math.round(hero.x), Math.round(hero.y), FRAME_SIZE, FRAME_SIZE);
     }
-
+    //Draws our chickens
     if (monsterReady) {
         chickens.forEach(function(chicken) {
             ctx.drawImage(monsterImage, chicken.frame * chicken.width, chicken.dir * chicken.height, chicken.width, chicken.height, Math.round(chicken.x),
             	Math.round(chicken.y), chicken.width, chicken.height);
         });
     }
-
+    //Draws our bullets
     if(starReady) {
         bullets.forEach(function(bullet) {
 
@@ -468,7 +468,7 @@ var main = function() {
     var delta = now - then;
 
     // 1000ms in a second
-    update(delta / 1000);
+    update(delta / UPDATE_TIMER);
     render();
 
     then = now;
